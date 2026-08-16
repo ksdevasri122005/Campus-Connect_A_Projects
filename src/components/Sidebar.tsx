@@ -11,17 +11,22 @@ import {
   Settings
 } from 'lucide-react';
 
-const Sidebar = () => {
+interface SidebarProps {
+  currentPath: string;
+  onNavigate: (path: string) => void;
+}
+
+const Sidebar = ({ currentPath, onNavigate }: SidebarProps) => {
   const menuItems = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', active: true },
-    { icon: <Building2 size={20} />, label: 'Companies' },
-    { icon: <Users size={20} />, label: 'Trainers' },
-    { icon: <BookOpen size={20} />, label: 'Training Domains' },
-    { icon: <CalendarCheck size={20} />, label: 'Bookings' },
-    { icon: <ListChecks size={20} />, label: 'My Requests' },
-    { icon: <UserSquare2 size={20} />, label: 'Students' },
-    { icon: <PieChart size={20} />, label: 'Reports' },
-    { icon: <Settings size={20} />, label: 'Settings' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', id: 'dashboard' },
+    { icon: <Building2 size={20} />, label: 'Companies', id: 'companies' },
+    { icon: <Users size={20} />, label: 'Trainers', id: 'trainers' },
+    { icon: <BookOpen size={20} />, label: 'Training Domains', id: 'domains' },
+    { icon: <CalendarCheck size={20} />, label: 'Bookings', id: 'bookings' },
+    { icon: <ListChecks size={20} />, label: 'My Requests', id: 'requests' },
+    { icon: <UserSquare2 size={20} />, label: 'Students', id: 'students' },
+    { icon: <PieChart size={20} />, label: 'Reports', id: 'reports' },
+    { icon: <Settings size={20} />, label: 'Settings', id: 'settings' },
   ];
 
   return (
@@ -51,33 +56,37 @@ const Sidebar = () => {
       </div>
       
       <nav style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {menuItems.map((item, idx) => (
-          <button 
-            key={idx}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: item.active ? 'var(--secondary-color)' : 'transparent',
-              color: item.active ? 'var(--primary-color)' : 'var(--text-secondary)',
-              fontWeight: item.active ? 600 : 500,
-              textAlign: 'left',
-              width: '100%',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => {
-              if (!item.active) e.currentTarget.style.backgroundColor = 'var(--bg-color)';
-            }}
-            onMouseOut={(e) => {
-              if (!item.active) e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            {item.icon}
-            {item.label}
-          </button>
-        ))}
+        {menuItems.map((item, idx) => {
+          const isActive = currentPath === item.id;
+          return (
+            <button 
+              key={idx}
+              onClick={() => onNavigate(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: isActive ? 'var(--secondary-color)' : 'transparent',
+                color: isActive ? 'var(--primary-color)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 500,
+                textAlign: 'left',
+                width: '100%',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => {
+                if (!isActive) e.currentTarget.style.backgroundColor = 'var(--bg-color)';
+              }}
+              onMouseOut={(e) => {
+                if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          );
+        })}
       </nav>
       
       <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)' }}>

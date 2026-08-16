@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import Topbar from '../components/Topbar';
 import CompanyCard from '../components/CompanyCard';
 import TrainerModal from '../components/TrainerModal';
 import BookingModal from '../components/BookingModal';
@@ -16,6 +14,11 @@ const Dashboard = () => {
   const [isTrainerModalOpen, setIsTrainerModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [domainFilter, setDomainFilter] = useState('');
+  const [modeFilter, setModeFilter] = useState('');
+
   useEffect(() => {
     getCompanies().then(data => {
       setCompanies(data);
@@ -23,14 +26,18 @@ const Dashboard = () => {
     });
   }, []);
 
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          company.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDomain = domainFilter ? company.domains.includes(domainFilter) : true;
+    const matchesMode = modeFilter ? company.trainingModes.includes(modeFilter) : true;
+    return matchesSearch && matchesDomain && matchesMode;
+  });
+
   return (
-    <div className="layout">
-      <Sidebar />
-      <main className="main-content">
-        <Topbar />
-        
-        <div className="content-container">
-          <div style={{ marginBottom: '2rem' }}>
+    <>
+      <div className="content-container">
+      <div style={{ marginBottom: '2rem' }}>
             <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>
               Industry Trainer Connect
             </h1>
@@ -81,29 +88,35 @@ const Dashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, marginRight: '1rem' }}>
               <Filter size={18} /> Filters
             </div>
-            <input type="text" placeholder="Company Name" style={{ flex: '1 1 150px' }} />
-            <input type="text" placeholder="Trainer/Domain" style={{ flex: '1 1 150px' }} />
-            <select style={{ flex: '1 1 150px' }}>
+            <input 
+              type="text" 
+              placeholder="Search Company..." 
+              style={{ flex: '1 1 150px' }} 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <select style={{ flex: '1 1 150px' }} value={domainFilter} onChange={(e) => setDomainFilter(e.target.value)}>
               <option value="">All Domains</option>
-              <option value="Java">Java</option>
-              <option value="Python">Python</option>
-              <option value="AI/ML">AI/ML</option>
+              <option value="Java Full Stack">Java Full Stack</option>
+              <option value="MERN Stack">MERN Stack</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Cloud Computing (AWS/Azure)">Cloud</option>
+              <option value="Artificial Intelligence">AI</option>
             </select>
-            <select style={{ flex: '1 1 150px' }}>
-              <option value="">Duration</option>
-              <option value="1 Month">1 Month</option>
-              <option value="3 Months">3 Months</option>
-              <option value="6 Months">6 Months</option>
-            </select>
-            <select style={{ flex: '1 1 150px' }}>
-              <option value="">Mode</option>
+            <select style={{ flex: '1 1 150px' }} value={modeFilter} onChange={(e) => setModeFilter(e.target.value)}>
+              <option value="">All Modes</option>
               <option value="Online">Online</option>
               <option value="Offline">Offline</option>
               <option value="Hybrid">Hybrid</option>
             </select>
           </div>
           
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>Partner Companies</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Partner Companies</h2>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              Showing {filteredCompanies.length} result{filteredCompanies.length !== 1 && 's'}
+            </div>
+          </div>
           
           {loading ? (
             <div>Loading companies...</div>
@@ -113,7 +126,7 @@ const Dashboard = () => {
               gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
               gap: '1.5rem' 
             }}>
-              {companies.map(company => (
+              {filteredCompanies.map(company => (
                 <CompanyCard 
                   key={company.id} 
                   company={company} 
@@ -131,7 +144,6 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-      </main>
 
       <TrainerModal 
         isOpen={isTrainerModalOpen} 
@@ -157,7 +169,7 @@ const Dashboard = () => {
         company={selectedCompany}
         trainer={selectedTrainer}
       />
-    </div>
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { submitBookingRequest } from '../mockApi';
 import type { BookingData, Company, Trainer } from '../mockApi';
 import { X, Calendar } from 'lucide-react';
@@ -15,7 +15,44 @@ const BookingModal: React.FC<Props> = ({ isOpen, onClose, company, trainer }) =>
   const [success, setSuccess] = useState(false);
   const [message, setMessage] = useState('');
   
+  // Real-time calculation states
+  const [selectedDomain, setSelectedDomain] = useState(trainer?.trainingDomains?.[0] || company?.domains?.[0] || '');
+  const [selectedDuration, setSelectedDuration] = useState('1 Month');
+  const [studentCount, setStudentCount] = useState(120);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSuccess(false);
+      setMessage('');
+      setSelectedDomain(trainer?.trainingDomains?.[0] || company?.domains?.[0] || '');
+      setSelectedDuration('1 Month');
+      setStudentCount(120);
+    }
+  }, [isOpen, trainer, company]);
+
   if (!isOpen) return null;
+
+  const getEstimatedCost = () => {
+    if (!company || !selectedDomain) return 0;
+    const range = company.domainFeeRanges?.[selectedDomain];
+    if (!range) return 0;
+
+    // Sliding scale for volume discount
+    // < 50 students = max price
+    // 50 - 200 students = sliding scale between max and min
+    // > 200 students = min price
+    
+    let effectiveMonthlyFee = range.max;
+    if (studentCount >= 200) {
+      effectiveMonthlyFee = range.min;
+    } else if (studentCount > 50) {
+      const discountRatio = (studentCount - 50) / 150; // 0 to 1
+      effectiveMonthlyFee = range.max - ((range.max - range.min) * discountRatio);
+    }
+    
+    const months = parseInt(selectedDuration.split(' ')[0]) || 1;
+    return Math.round(effectiveMonthlyFee) * months * studentCount;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,11 +146,11 @@ const BookingModal: React.FC<Props> = ({ isOpen, onClose, company, trainer }) =>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Number of Students</label>
-                  <input type="number" name="studentsCount" required defaultValue={120} />
+                  <input type="number" name="studentsCount" required value={studentCount} onChange={e => setStudentCount(parseInt(e.target.value) || 0)} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Training Domain</label>
-                  <select name="domain" required defaultValue={trainer?.trainingDomains[0] || company?.domains[0]}>
+                  <select name="domain" required value={selectedDomain} onChange={e => setSelectedDomain(e.target.value)}>
                     {(trainer?.trainingDomains || company?.domains || []).map(d => (
                       <option key={d} value={d}>{d}</option>
                     ))}
@@ -133,7 +170,7 @@ const BookingModal: React.FC<Props> = ({ isOpen, onClose, company, trainer }) =>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Duration</label>
-                  <select name="duration" required>
+                  <select name="duration" required value={selectedDuration} onChange={e => setSelectedDuration(e.target.value)}>
                     <option value="1 Month">1 Month</option>
                     <option value="2 Months">2 Months</option>
                     <option value="3 Months">3 Months</option>
@@ -151,6 +188,31 @@ const BookingModal: React.FC<Props> = ({ isOpen, onClose, company, trainer }) =>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Additional Requirements</label>
                 <textarea name="requirements" rows={4} placeholder="Any specific topics or project requirements..." />
+              </div>
+              
+              <div style={{ 
+                backgroundColor: 'var(--bg-color)', 
+                padding: '1.5rem', 
+                borderRadius: 'var(--radius-lg)', 
+                border: '1px solid var(--border-color)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>ESTIMATED TOTAL FEE</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-color)' }}>
+                    ₹ {getEstimatedCost().toLocaleString('en-IN')}
+                  </div>
+                  {studentCount > 50 && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--success-color)', fontWeight: 600, marginTop: '0.25rem' }}>
+                      Volume discount applied!
+                    </div>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                  Based on {studentCount} students<br/>for {selectedDuration}
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>

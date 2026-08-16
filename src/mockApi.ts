@@ -10,6 +10,7 @@ export interface Company {
   durations: string[];
   website?: string;
   hqLocation?: string;
+  domainFeeRanges: Record<string, { min: number, max: number }>; // Domain -> min and max price per student per month
 }
 
 export interface Trainer {
@@ -49,7 +50,7 @@ export interface BookingData {
 }
 
 const companyNames = [
-  'TCS', 'Infosys', 'Wipro', 'HCLTech', 'Tech Mahindra',
+  'Campus Connection', 'TCS', 'Infosys', 'Wipro', 'HCLTech', 'Tech Mahindra',
   'Cognizant', 'Capgemini', 'Accenture', 'IBM', 'Oracle',
   'Microsoft', 'Google', 'Amazon', 'Cisco', 'Intel',
   'Zoho', 'Freshworks', 'ThoughtWorks', 'Mindtree', 'LTI'
@@ -66,19 +67,29 @@ const mockCompanies: Company[] = companyNames.map((name, index) => {
   // Generate random data for variety
   const numDomains = Math.floor(Math.random() * 4) + 3;
   const shuffledDomains = [...domainsList].sort(() => 0.5 - Math.random());
+  const selectedDomains = name === 'Campus Connection' ? ['Java Full Stack', 'MERN Stack', 'Interview Preparation', 'Aptitude & Logical Reasoning'] : shuffledDomains.slice(0, numDomains);
   
+  const domainFeeRanges: Record<string, { min: number, max: number }> = {};
+  selectedDomains.forEach(domain => {
+    // Generate realistic fees per student per month (e.g., max ₹4000 - ₹8000, min ₹2000 - ₹5000)
+    const maxFee = Math.floor(Math.random() * 40 + 40) * 100;
+    const minFee = maxFee - (Math.floor(Math.random() * 15 + 10) * 100);
+    domainFeeRanges[domain] = { min: minFee, max: maxFee };
+  });
+
   return {
     id: `c${index + 1}`,
     name,
-    logo: `https://logo.clearbit.com/${name.toLowerCase().replace(/\s+/g, '')}.com`,
-    description: `Leading provider of digital solutions and industry-standard training in emerging technologies. Partnered with top universities.`,
-    trainersCount: Math.floor(Math.random() * 50) + 10,
-    domains: shuffledDomains.slice(0, numDomains),
+    logo: name === 'Campus Connection' ? 'https://ui-avatars.com/api/?name=CC&background=4f46e5&color=fff&size=128' : `https://logo.clearbit.com/${name.toLowerCase().replace(/\s+/g, '')}.com`,
+    description: name === 'Campus Connection' ? 'Your dedicated partner for bridging the gap between campus and corporate. Specializing in high-impact placement training.' : `Leading provider of digital solutions and industry-standard training in emerging technologies. Partnered with top universities.`,
+    trainersCount: name === 'Campus Connection' ? 45 : Math.floor(Math.random() * 50) + 10,
+    domains: selectedDomains,
     trainingModes: ['Online', 'Offline', 'Hybrid'].filter(() => Math.random() > 0.3).concat(Math.random() > 0.8 ? [] : ['Online']),
     experienceLevel: `${Math.floor(Math.random() * 5) + 3}+ Years`,
     durations: ['1 Month', '2 Months', '3 Months', '6 Months'].filter(() => Math.random() > 0.4),
     hqLocation: ['Bangalore', 'Chennai', 'Pune', 'Hyderabad', 'Mumbai', 'Noida'][Math.floor(Math.random() * 6)],
-    website: `https://www.${name.toLowerCase().replace(/\s+/g, '')}.com`
+    website: `https://www.${name.toLowerCase().replace(/\s+/g, '')}.com`,
+    domainFeeRanges
   };
 });
 

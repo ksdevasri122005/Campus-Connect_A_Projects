@@ -1,7 +1,17 @@
-
-import { Search, Bell, UserCircle, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Bell, UserCircle, LogOut, Moon, Sun } from 'lucide-react';
 
 const Topbar = () => {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
   return (
     <header style={{
       height: 'var(--topbar-height)',
@@ -40,6 +50,9 @@ const Topbar = () => {
       </div>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <button onClick={() => setIsDark(!isDark)} style={{ color: 'var(--text-secondary)', transition: 'transform 0.2s' }} className="hover:scale-110">
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
         <button style={{ color: 'var(--text-secondary)' }}>
           <Bell size={20} />
         </button>

@@ -1,5 +1,5 @@
 import type { Company } from '../mockApi';
-import { Users, GraduationCap, Clock, MonitorPlay, MapPin } from 'lucide-react';
+import { Users, GraduationCap, Clock, MonitorPlay, MapPin, IndianRupee } from 'lucide-react';
 
 interface Props {
   company: Company;
@@ -54,18 +54,23 @@ const CompanyCard: React.FC<Props> = ({ company, onViewTrainers, onBookTrainer }
       </div>
       
       <div style={{ marginTop: '0.5rem' }}>
-        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>DOMAINS</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>DOMAINS & FEES (per student/mo)</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           {company.domains.map(d => (
-            <span key={d} style={{ 
+            <div key={d} style={{ 
               backgroundColor: 'var(--bg-color)', 
               padding: '0.25rem 0.5rem', 
               borderRadius: 'var(--radius-sm)',
               fontSize: '0.75rem',
-              color: 'var(--text-secondary)'
+              display: 'flex',
+              flexDirection: 'column',
+              border: '1px solid var(--border-color)'
             }}>
-              {d}
-            </span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{d}</span>
+              <span style={{ color: 'var(--primary-color)', display: 'flex', alignItems: 'center', marginTop: '0.125rem', fontWeight: 600 }}>
+                <IndianRupee size={10} /> {company.domainFeeRanges[d]?.min.toLocaleString('en-IN')} - {company.domainFeeRanges[d]?.max.toLocaleString('en-IN')}
+              </span>
+            </div>
           ))}
         </div>
       </div>
